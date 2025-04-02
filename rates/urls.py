@@ -3,7 +3,8 @@ from . import views  # Импортируем views из текущего при
 from .views import predictions_view
 from django.conf import settings
 from django.conf.urls.static import static
-from django.conf.urls import url
+
+
 
 
 urlpatterns = [
