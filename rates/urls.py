@@ -1,7 +1,11 @@
 from django.urls import path
 from . import views  # Импортируем views из текущего приложения
 from .views import predictions_view
+from django.conf import settings
+from django.conf.urls.static import static
 
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns = [
     path('', views.home, name='home'),
     # path('graph/', views.graph_view, name='graph'),  # Удалил дубликат
