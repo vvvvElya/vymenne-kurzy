@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+venv/
+.env
+*.env
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+celerybeat-schedule.*
+*.log
+
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VSCode/PyCharm
+.idea/
+.vscode/
+
+# Misc
+*.bak
+*.tmp
