@@ -31,7 +31,8 @@ ALLOWED_HOSTS = ['*']
 #DEBUG = True
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['vymenne-kurzy.onrender.com']
+
 
 
 # Application definition
