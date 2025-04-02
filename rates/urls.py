@@ -3,9 +3,9 @@ from . import views  # Импортируем views из текущего при
 from .views import predictions_view
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls import url
 
 
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns = [
     path('', views.home, name='home'),
     # path('graph/', views.graph_view, name='graph'),  # Удалил дубликат
@@ -13,4 +13,6 @@ urlpatterns = [
     path('predikcia/', predictions_view, name='predikcia'),
 
 ]
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
