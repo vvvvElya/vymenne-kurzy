@@ -5,8 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import LSTM, Dense
+
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "exchange_rates.settings")
 import django
@@ -73,6 +72,9 @@ def train_lstm(currency_code, look_back=30):
     return model, scaler
 
 def predict_future(currency, days, model_name="lstm", look_back=30):
+    import tensorflow as tf
+    from tensorflow.keras.models import load_model
+    from tensorflow.keras.layers import LSTM, Dense
     historical_data = ExchangeRateNormalized.objects.filter(
         currency__currency_code=currency
     ).order_by('date')
