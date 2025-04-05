@@ -3,6 +3,7 @@ import pandas as pd
 from rates.models import ExchangeRateNormalized
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
+from rates.models import Currency
 
 def calculate_metrics(y_true, y_pred):
     mse = mean_squared_error(y_true, y_pred)
@@ -17,10 +18,14 @@ def calculate_metrics(y_true, y_pred):
     }
 
 def predict_prophet(currency, forecast_steps):
-    #data = ExchangeRateNormalized.objects.filter(currency__currency_code=currency).order_by('date')
-    data = ExchangeRateNormalized.objects.filter(currency_code=currency).order_by('date')
-    if not data.exists():
-        raise ValueError(f"Нет данных для валюты {currency}")
+    # Получаем объект валюты
+    try:
+        currency_obj = Currency.objects.get(currency_code=currency)
+    except Currency.DoesNotExist:
+        raise ValueError(f"Валюта {currency} не найдена в базе данных!")
+
+    # Затем фильтруем по объекту, а не по строке
+    data = ExchangeRateNormalized.objects.filter(currency_code=currency_obj).order_by('date')
 
     df = pd.DataFrame(list(data.values('date', 'rate_value')))
     df = df.rename(columns={'date': 'ds', 'rate_value': 'y'})
