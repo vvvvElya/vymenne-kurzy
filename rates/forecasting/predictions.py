@@ -24,7 +24,7 @@ def save_predictions(currency, model_name="lstm", days=10):
 
     elif model_name == "linear_regression":
         result = predict_linear_regression(currency, days)
-        predictions = result["future"]  # <-- Берем только прогноз на будущее
+        predictions = result["future"]
         dates = predictions.index
         values = predictions.values
 

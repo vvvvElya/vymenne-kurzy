@@ -24,6 +24,8 @@
             <select name="model" id="model" class="form-select">
                 <option value="lstm" {% if model == "lstm" %}selected{% endif %}>LSTM (neurónová sieť)</option>
                 <option value="linear_regression" {% if model == "linear_regression" %}selected{% endif %}>Lineárna regresia</option>
+                <option value="prophet" {% if model == "prophet" %}selected{% endif %}>Prophet</option>
+                <option value="timegpt" {% if model == "timegpt" %}selected{% endif %}>TimeGPT(Nixtla AI)</option>
             </select>
         </div>
 
@@ -43,6 +45,110 @@
     <div class="alert alert-danger">❌ {{ error }}</div>
 {% endif %}
 
+    
+    {% if full_chart_data %}
+    <h2 class="mt-4">Vizualizácia predikcie</h2>
+    <div id="chart" style="height: 500px;"></div>
+    <button id="download-chart" class="btn btn-secondary mt-3">Stiahnuť graf ako obrázok</button>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            try {
+                const chartData = JSON.parse(`{{ full_chart_data|escapejs }}`);
+
+                const trace1 = {
+                    x: chartData.train_dates,
+                    y: chartData.train_values,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Tréningové dáta',
+                    line: { color: 'blue' },
+                    connectgaps: true
+                };
+
+                const trace2 = {
+                    x: chartData.test_dates,
+                    y: chartData.test_values,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Testovacie dáta',
+                    line: { color: 'green' },
+                    connectgaps: true
+                };
+
+                const trace3 = {
+                    x: chartData.test_dates.concat(chartData.future_dates),
+                    y: chartData.predicted_values.concat(chartData.future_values),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Predikcia',
+                    line: { color: 'red', dash: 'dot' },
+                    connectgaps: true
+                };
+
+                const data = [trace1, trace2, trace3];
+
+                if (chartData.future_lower && chartData.future_upper) {
+                    const trace4 = {
+                        x: chartData.future_dates,
+                        y: chartData.future_upper,
+                        mode: 'lines',
+                        line: { width: 0 },
+                        name: 'Horná hranica 95% intervalu',
+                        showlegend: false
+                    };
+
+                    const trace5 = {
+                        x: chartData.future_dates,
+                        y: chartData.future_lower,
+                        fill: 'tonexty',
+                        fillcolor: 'rgba(255, 0, 0, 0.2)',
+                        mode: 'lines',
+                        line: { width: 0 },
+                        name: 'Dolná hranica 95% intervalu',
+                        showlegend: true
+                    };
+
+                    data.push(trace4, trace5);
+                }
+
+                const layout = {
+                    title: 'Predikcia výmenného kurzu {{ currency }}',
+                    xaxis: { title: 'Dátum' },
+                    yaxis: { title: 'Kurz' },
+                    legend: {
+                        orientation: 'h',
+                        y: -0.3,
+                        x: 0.5,
+                        xanchor: 'center'
+                    },
+                    margin: { t: 50, b: 100 }
+                };
+
+                Plotly.newPlot('chart', data, layout).then(function () {
+                    Plotly.animate('chart', {
+                        data: data
+                    }, {
+                        transition: { duration: 1000, easing: 'cubic-in-out' },
+                        frame: { duration: 1000 }
+                    });
+                });
+
+                document.getElementById('download-chart').addEventListener('click', function () {
+                    Plotly.downloadImage('chart', {
+                        format: 'png',
+                        filename: 'predikcia_vymenneho_kurzu_{{ currency }}'
+                    });
+                });
+
+            } catch (e) {
+                document.getElementById('chart').innerHTML = '<div class="alert alert-danger">⚠️ Chyba pri vykreslení grafu</div>';
+                console.error(e);
+            }
+        });
+    </script>
+{% endif %}
+    
 {% if predictions %}
     <h2 class="mt-4">Výsledky predikcie pre {{ currency }}</h2>
     <table class="table table-bordered">
@@ -76,49 +182,6 @@
     </ul>
 {% endif %}
 
-{% if full_chart_data %}
-    <h2 class="mt-4">Vizualizácia predikcie</h2>
-    <div id="chart" style="height: 500px;"></div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            try {
-                const chartData = JSON.parse(`{{ full_chart_data|escapejs }}`);
-                const trace1 = {
-                    x: chartData.train_dates,
-                    y: chartData.train_values,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Tréningové dáta',
-                    line: { color: 'blue' }
-                };
-                const trace2 = {
-                    x: chartData.test_dates,
-                    y: chartData.test_values,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Testovacie dáta',
-                    line: { color: 'green' }
-                };
-                const trace3 = {
-                    x: chartData.test_dates.concat(chartData.future_dates),
-                    y: chartData.predicted_values.concat(chartData.future_values),
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Predikcia',
-                    line: { color: 'red', dash: 'dot' }
-                };
 
-                Plotly.newPlot('chart', [trace1, trace2, trace3], {
-                    title: 'Predikcia výmenného kurzu {{ currency }}',
-                    xaxis: { title: 'Dátum' },
-                    yaxis: { title: 'Kurz' }
-                });
-            } catch (e) {
-                document.getElementById('chart').innerHTML = '<div class="alert alert-danger">⚠️ Chyba pri vykreslení grafu</div>';
-                console.error(e);
-            }
-        });
-    </script>
-{% endif %}
 
 {% endblock %}

@@ -47,22 +47,30 @@ class Currency(models.Model):
 # Таблица для нормализованных курсов
 class ExchangeRateNormalized(models.Model):
     date = models.DateField()
-    # Указываем внешнюю связь на единственную модель Currency
-    currency = models.ForeignKey(Currency, on_delete=models.CASCADE, db_column="currency_code")
+    currency_code = models.ForeignKey(
+        Currency,
+        to_field='currency_code',
+        db_column='currency_code',
+        on_delete=models.CASCADE
+    )
     rate_value = models.DecimalField(max_digits=10, decimal_places=4)
 
     class Meta:
+        unique_together = ('date', 'currency_code')
         db_table = 'exchange_rates_normalized'
-        unique_together = ('date', 'currency')
 
 
 # Предсказания
 class Prediction(models.Model):
     date = models.DateField()
-    currency_code = models.ForeignKey(Currency, on_delete=models.CASCADE, db_column="currency_code")
+    currency_code = models.ForeignKey(
+        Currency,
+        to_field='currency_code',
+        db_column='currency_code',
+        on_delete=models.CASCADE
+    )
     predicted_value = models.DecimalField(max_digits=10, decimal_places=4)
-    model_name = models.CharField(max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True)
+    model_name = models.CharField(max_length=100)
 
     class Meta:
         db_table = 'predictions'
