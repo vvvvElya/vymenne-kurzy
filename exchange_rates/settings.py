@@ -24,13 +24,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECRET_KEY = 'django-insecure-=(o(@g^r_)+6p1tk=i8jo8&mf0%88s#uqc)4he50x1ydh6hwi+'
 SECRET_KEY = os.getenv("SECRET_KEY", "fake-dev-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ['*']
-
-
-# SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
-DEBUG = os.getenv("DEBUG", "False") == "True"
-
 ALLOWED_HOSTS = ['vymenne-kurzy.onrender.com']
 
 
@@ -81,17 +74,13 @@ WSGI_APPLICATION = 'exchange_rates.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-
-
 DATABASES = {
     'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
         ssl_require=True
     )
 }
-
 
 
 

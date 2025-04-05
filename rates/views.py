@@ -1,28 +1,28 @@
 from django.shortcuts import render
 from .models import Prediction
-from .forecasting.predictions import save_predictions
 from .models import ExchangeRate
 from rates.models import ExchangeRateNormalized
-from datetime import datetime, timedelta
-import plotly.graph_objs as go
-import base64
-import io
-import urllib
+from datetime import datetime
 import json
 import pandas as pd
 import decimal
-from decimal import Decimal  # Импортируем Decimal
-from .models import Prediction
+from rates.data_collection.data_loader import backfill_missing_data  # поправь путь
+from django.shortcuts import redirect
+
 
 # Импорт моделей предсказаний
 from .forecasting.lstm_model import predict_future as predict_lstm
 from .forecasting.linear_regression_model import predict_linear_regression
+from .forecasting.prophet_model import predict_prophet
+from .forecasting.nixtla_model import predict_timegpt
 from .forecasting.predictions import save_predictions
+
 # Маппинг моделей для удобства расширения
 MODEL_FUNCTIONS = {
     'lstm': predict_lstm,
     'linear_regression': predict_linear_regression,
-    # 'prophet': predict_prophet,  # когда будет готово
+    'prophet': predict_prophet,
+    'timegpt': predict_timegpt,
 }
 
 
@@ -79,30 +79,6 @@ def graph_view(request):
     return render(request, "graph.html", context)
 
 
-"""
-def predictions_view(request):
-    currency = request.GET.get('currency', 'USD')  # Выбираем валюту из формы
-    model = request.GET.get('model', 'lstm')  # Выбираем метод предсказания
-    days = int(request.GET.get('days', 10))  # Количество дней предсказания
-
-    print(f"DEBUG: Получена валюта - {currency}, модель - {model}, дней - {days}")  # Проверяем, что приходит
-
-    # Генерируем предсказания
-    save_predictions(currency, model, days)
-
-    # Проверяем, что model используется везде правильно
-    predictions = Prediction.objects.filter(
-        currency_code__currency_code=currency,  # фильтруем по внешнему ключу
-        model_name=model
-    ).order_by('-date')[:days]
-
-    return render(request, 'predictions.html', {
-        'currency': currency,
-        'model': model,
-        'days': days,
-        'predictions': predictions
-    })
-"""
 def predictions_view(request):
     currency = request.GET.get('currency', 'USD').upper()
     model = request.GET.get('model', 'lstm')
@@ -129,9 +105,11 @@ def predictions_view(request):
 
         df_hist['date'] = pd.to_datetime(df_hist['date'])
         df_hist = df_hist.sort_values("date")
-        split_index = int(len(df_hist) * 0.8)
-        df_train = df_hist.iloc[:split_index]
-        df_test = df_hist.iloc[split_index:]
+
+        # Правильное разбиение данных по дате для совместимости с Prophet
+        split_date = df_hist['date'].iloc[int(len(df_hist)*0.9) - 1]
+        df_train = df_hist[df_hist['date'] <= split_date]
+        df_test = df_hist[df_hist['date'] > split_date]
 
         model_function = MODEL_FUNCTIONS.get(model)
         if not model_function:
@@ -142,6 +120,7 @@ def predictions_view(request):
         if not result or 'test_result' not in result or 'future' not in result:
             raise ValueError(f'Модель "{model}" не вернула данные в ожидаемом формате')
 
+        # Готовим данные для графика, учитывая доверительный интервал
         full_chart_data = {
             "train_dates": df_train["date"].dt.strftime('%Y-%m-%d').tolist(),
             "train_values": df_train["rate_value"].tolist(),
@@ -151,6 +130,11 @@ def predictions_view(request):
             "future_dates": result["future"].index.strftime('%Y-%m-%d').tolist(),
             "future_values": result["future"].tolist(),
         }
+
+        #  Если модель возвращает доверительный интервал — добавляем его в график
+        if "future_lower" in result and "future_upper" in result:
+            full_chart_data["future_lower"] = result["future_lower"].tolist()
+            full_chart_data["future_upper"] = result["future_upper"].tolist()
 
         def convert_decimal(obj):
             if isinstance(obj, decimal.Decimal):
@@ -173,3 +157,11 @@ def predictions_view(request):
             'days': days,
             'error': f'❌ {str(e)}'
         })
+
+
+
+def backfill_view(request):
+    if request.method == 'POST':
+        backfill_missing_data(request)  # Вот так — передаём request!
+        return redirect('exchange_rate_graph')
+    return redirect('exchange_rate_graph')

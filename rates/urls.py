@@ -12,7 +12,7 @@ urlpatterns = [
     # path('graph/', views.graph_view, name='graph'),  # Удалил дубликат
     path("graph/", views.graph_view, name="exchange_rate_graph"),  #  Путь для графика
     path('predikcia/', predictions_view, name='predikcia'),
-
+    path('backfill/', views.backfill_view, name='backfill'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

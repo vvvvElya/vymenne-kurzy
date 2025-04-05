@@ -59,3 +59,67 @@ def load_exchange_rates(currency_code):
     return df
 
 
+
+# новая функция
+
+BASE_CURRENCY = 'EUR'
+TARGET_CURRENCIES = ['USD', 'CNY', 'HUF', 'PLN', 'CZK', 'GBP']
+
+def fetch_and_save_exchange_rates(date):
+    # Просто проверяем, если данные есть — выходим молча
+    if ExchangeRate.objects.filter(date=date).exists():
+        return
+
+    date_str = date.strftime('%Y-%m-%d')
+    url = f"https://api.frankfurter.app/{date_str}?from={BASE_CURRENCY}&to={','.join(TARGET_CURRENCIES)}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json().get('rates', {})
+        if data:
+            ExchangeRate.objects.update_or_create(
+                date=date,
+                defaults={
+                    'USD': data.get('USD'),
+                    'CNY': data.get('CNY'),
+                    'HUF': data.get('HUF'),
+                    'PLN': data.get('PLN'),
+                    'CZK': data.get('CZK'),
+                    'GBP': data.get('GBP'),
+                }
+            )
+        else:
+            print(f"⚠️ Нет данных за {date_str}.")
+    else:
+        print(f"❌ Ошибка при запросе данных за {date_str}: {response.status_code}")
+
+def backfill_missing_data(request=None):
+    start_date = datetime.date(2024, 1, 1)
+    end_date = datetime.date.today()
+
+    # Шаг 1: Сбор данных с API Frankfurter и сохранение, только если их нет в базе
+    current_date = start_date
+    while current_date <= end_date:
+        fetch_and_save_exchange_rates(current_date)
+        current_date += datetime.timedelta(days=1)
+
+    # Шаг 2: Переносим данные в exchange_rates_normalized
+    exchange_rates = ExchangeRate.objects.filter(date__range=[start_date, end_date]).order_by('date')
+
+    for rate in exchange_rates:
+        for currency in TARGET_CURRENCIES:
+            try:
+                currency_obj = Currency.objects.get(currency_code=currency)
+                ExchangeRateNormalized.objects.update_or_create(
+                    date=rate.date,
+                    currency=currency_obj,
+                    defaults={'rate_value': getattr(rate, currency)}
+                )
+            except Currency.DoesNotExist:
+                print(f"⚠️ Валюта {currency} не найдена в таблице Currency!")
+
+    # Шаг 3: Уведомление на сайт
+    if request:
+        messages.success(request, "✅ Dáta boli úspešne aktualizované!")
+
+# Как использовать:
+# backfill_missing_data()

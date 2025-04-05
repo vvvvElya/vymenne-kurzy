@@ -28,6 +28,18 @@ def save_predictions(currency, model_name="lstm", days=10):
         dates = predictions.index
         values = predictions.values
 
+    elif model_name == "prophet":
+        result = predict_prophet(currency, days)
+        predictions = result["future"]
+        dates = predictions.index
+        values = predictions.values
+
+    elif model_name == "timegpt":
+        result = predict_timegpt(currency, days)
+        predictions = result["future"]
+        dates = predictions.index
+        values = predictions.values
+
     else:
         print(f" Неизвестный метод предсказания: {model_name}")
         return

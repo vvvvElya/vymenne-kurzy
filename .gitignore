@@ -22,7 +22,9 @@ Thumbs.db
 # VSCode/PyCharm
 .idea/
 .vscode/
+TIMEGPT_API_KEY=твой_реальный_API_ключ
 
 # Misc
 *.bak
 *.tmp
+
