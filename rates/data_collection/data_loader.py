@@ -1,8 +1,10 @@
 import pandas as pd
 from django.db import connection
 from rates.models import ExchangeRate, ExchangeRateNormalized, Currency
-from datetime import datetime, timedelta
+from datetime import datetime
 from rates.models import ExchangeRateNormalized
+import requests
+from django.contrib import messages
 
 def save_exchange_rates(date, rates):
     """

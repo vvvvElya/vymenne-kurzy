@@ -8,7 +8,7 @@ import pandas as pd
 import decimal
 from rates.data_collection.data_loader import backfill_missing_data  # поправь путь
 from django.shortcuts import redirect
-
+from django.contrib import messages
 
 # Импорт моделей предсказаний
 from .forecasting.lstm_model import predict_future as predict_lstm
