@@ -11,7 +11,8 @@ def save_predictions(currency, model_name="lstm", days=10):
     print(f"⚡ Генерируем предсказания для {currency}, модель: {model_name}, {days} дней...")
 
     # Удаляем старые предсказания перед добавлением новых
-    Prediction.objects.filter(currency_code__currency_code=currency, model_name=model_name).delete()
+    currency_obj, _ = Currency.objects.get_or_create(currency_code=currency)
+    Prediction.objects.filter(currency_code=currency_obj, model_name=model_name).delete()
 
     # Выбираем метод предсказания
     if model_name == "lstm":

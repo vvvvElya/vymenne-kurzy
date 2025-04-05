@@ -2,6 +2,7 @@ from django.shortcuts import render
 from .models import Prediction
 from .models import ExchangeRate
 from rates.models import ExchangeRateNormalized
+from rates.models import Currency
 from datetime import datetime
 import json
 import pandas as pd
@@ -89,8 +90,10 @@ def predictions_view(request):
     try:
         save_predictions(currency, model, days)
 
+        currency_obj = Currency.objects.get(currency_code=currency)
+
         predictions_qs = Prediction.objects.filter(
-            currency_code__currency_code=currency,
+            currency_code__currency_code=currency_obj,
             model_name=model
         ).order_by('date')
 
