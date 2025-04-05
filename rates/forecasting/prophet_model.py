@@ -17,7 +17,8 @@ def calculate_metrics(y_true, y_pred):
     }
 
 def predict_prophet(currency, forecast_steps):
-    data = ExchangeRateNormalized.objects.filter(currency__currency_code=currency).order_by('date')
+    #data = ExchangeRateNormalized.objects.filter(currency__currency_code=currency).order_by('date')
+    data = ExchangeRateNormalized.objects.filter(currency_code=currency).order_by('date')
     if not data.exists():
         raise ValueError(f"Нет данных для валюты {currency}")
 

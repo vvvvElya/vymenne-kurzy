@@ -113,7 +113,7 @@ def backfill_missing_data(request=None):
                 currency_obj = Currency.objects.get(currency_code=currency)
                 ExchangeRateNormalized.objects.update_or_create(
                     date=rate.date,
-                    currency=currency_obj,
+                    currency_code=currency_obj,
                     defaults={'rate_value': getattr(rate, currency)}
                 )
             except Currency.DoesNotExist:

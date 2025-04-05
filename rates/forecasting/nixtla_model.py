@@ -14,7 +14,8 @@ def predict_timegpt(currency, forecast_steps):
         raise ValueError("TIMEGPT_API_KEY nie je nastavený v .env súbore!")
 
     # 🧩 Загружаем данные из базы данных
-    data = pd.DataFrame(list(ExchangeRateNormalized.objects.filter(currency__currency_code=currency).values()))
+   #data = pd.DataFrame(list(ExchangeRateNormalized.objects.filter(currency__currency_code=currency).values()))
+    data = pd.DataFrame(list(ExchangeRateNormalized.objects.filter(currency_code=currency).values()))
     if data.empty:
         raise ValueError(f'Nie sú dostupné historické údaje pre {currency}')
 
