@@ -1,5 +1,7 @@
 from rates.forecasting.lstm_model import predict_future
 from rates.forecasting.linear_regression_model import predict_linear_regression
+from rates.forecasting.prophet_model import predict_prophet
+from rates.forecasting.nixtla_model import predict_timegpt
 import pandas as pd
 from rates.models import Prediction, Currency
 from datetime import datetime
