@@ -82,7 +82,7 @@ def graph_view(request):
 
 def predictions_view(request):
     currency = request.GET.get('currency', 'USD').upper()
-    model = request.GET.get('model', 'lstm')
+    model = request.GET.get('model', 'prophet')
     days = int(request.GET.get('days', 10))
 
     print(f"📢 Запрос предсказаний для {currency}, модель: {model}, дней: {days}")
