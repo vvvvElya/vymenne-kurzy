@@ -123,5 +123,3 @@ def backfill_missing_data(request=None):
     if request:
         messages.success(request, "✅ Dáta boli úspešne aktualizované!")
 
-# Как использовать:
-# backfill_missing_data()
