@@ -93,7 +93,7 @@ def predictions_view(request):
         currency_obj = Currency.objects.get(currency_code=currency)
 
         predictions_qs = Prediction.objects.filter(
-            currency_code__currency_code=currency_obj,
+            currency_code=currency_obj,
             model_name=model
         ).order_by('date')
 
