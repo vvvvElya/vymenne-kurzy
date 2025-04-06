@@ -2,8 +2,15 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+if not os.getenv("DATABASE_URL"):
+    raise Exception("❌ Не найдена переменная окружения DATABASE_URL. Проверь .env файл!")
 
+if not os.getenv("SECRET_KEY"):
+    raise Exception("❌ Не найдена переменная окружения SECRET_KEY. Проверь .env файл!")
 
 def main():
     """Run administrative tasks."""

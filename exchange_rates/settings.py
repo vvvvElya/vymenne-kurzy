@@ -13,7 +13,13 @@ import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv('.env', encoding='utf-8')
+load_dotenv('.env', encoding='utf-8-sig')
+if not os.getenv("DATABASE_URL"):
+    raise Exception("❌ Не найдена переменная окружения DATABASE_URL. Проверь .env файл!")
+
+if not os.getenv("SECRET_KEY"):
+    raise Exception("❌ Не найдена переменная окружения SECRET_KEY. Проверь .env файл!")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
